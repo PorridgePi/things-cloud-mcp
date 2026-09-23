@@ -2,6 +2,9 @@ FROM golang:1.25-alpine AS builder
 
 WORKDIR /app
 
+# Install git and ca-certificates so go get can query GitHub over HTTPS
+RUN apk add --no-cache git ca-certificates
+
 ENV CGO_ENABLED=0
 
 # Copy manifests
