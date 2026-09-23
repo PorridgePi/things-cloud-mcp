@@ -1,12 +1,20 @@
-FROM golang:1.24-alpine AS builder
+FROM golang:1.25-alpine AS builder
 
 WORKDIR /app
 
-ENV GOTOOLCHAIN=auto
+ENV CGO_ENABLED=0
 
+# Copy manifests
+COPY go.mod go.sum* ./
+
+# Drop the local replace and fetch the latest package directly from GitHub
+RUN go mod edit -dropreplace github.com/arthursoares/things-cloud-sdk && \
+    go get github.com/arthursoares/things-cloud-sdk@main && \
+    go mod download
+
+# Copy application source and build
 COPY . .
-RUN go mod download
-RUN go build -o things-mcp .
+RUN go build -trimpath -ldflags="-s -w" -o things-mcp .
 
 FROM alpine:latest
 
