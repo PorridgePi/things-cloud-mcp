@@ -2,7 +2,7 @@ FROM golang:1.25-alpine AS builder
 
 WORKDIR /app
 
-# Install git and ca-certificates so go get can query GitHub over HTTPS
+# Install git and certs to allow fetching from GitHub over HTTPS
 RUN apk add --no-cache git ca-certificates
 
 ENV CGO_ENABLED=0
@@ -10,12 +10,14 @@ ENV CGO_ENABLED=0
 # Copy manifests
 COPY go.mod go.sum* ./
 
-# Drop the local replace and fetch the latest package directly from GitHub
-RUN go mod edit -dropreplace github.com/arthursoares/things-cloud-sdk && \
-    go get github.com/arthursoares/things-cloud-sdk@main && \
+# Drop both the local replace and the invalid dummy requirement, then pull the real remote module
+RUN go mod edit \
+        -dropreplace=github.com/arthursoares/things-cloud-sdk \
+        -droprequire=github.com/arthursoares/things-cloud-sdk && \
+    go get github.com/arthursoares/things-cloud-sdk@latest && \
     go mod download
 
-# Copy application source and build
+# Copy source and build binary
 COPY . .
 RUN go build -trimpath -ldflags="-s -w" -o things-mcp .
 
