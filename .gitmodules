@@ -1,0 +1,3 @@
+[submodule "things-cloud-sdk"]
+	path = things-cloud-sdk
+	url = https://github.com/arthursoares/things-cloud-sdk
